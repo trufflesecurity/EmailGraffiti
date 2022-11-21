@@ -1,6 +1,7 @@
-from python:alpine
-copy requirements.txt .
-run pip install -r requirements.txt
-workdir /mailbox
-copy checkMyOldEmails.py .
-cmd ["python", "checkMyOldEmails.py"]
+FROM python:3-alpine
+RUN apk add --update --no-cache g++ gcc libxslt-dev 
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+WORKDIR /mailbox
+COPY checkMyOldEmails.py .
+ENTRYPOINT ["python", "checkMyOldEmails.py"]
