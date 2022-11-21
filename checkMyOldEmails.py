@@ -1,18 +1,13 @@
 #! /usr/bin/env python3
 # ~*~ utf-8 ~*~
 
-import mailbox
 import json
-import bs4
-from urllib.parse import urlparse
-from threading import Thread
-from queue import Queue
 import sys
-import http.client as httplib
-import requests
-import aiohttp
-import time
+from pathlib import Path
 import asyncio
+import mailbox
+import bs4
+import aiohttp
 from aiohttp import ClientSession
 
 image_urls = []
@@ -95,12 +90,18 @@ class GmailMboxMessage():
 
 ######################### End of library, example of use below
 
-print("loading your emails")
 try:
-    mbox_obj = mailbox.mbox('mail.mbox')
-except:
-    print("Error loading your emails, make sure mail.mbox is in the working directory")
-    sys.exit()
+    filepath = sys.argv[1]
+    abs_path = Path(filepath).resolve(strict=True)
+except IndexError:
+    print("Usage: {} mail.mbox".format(sys.argv[0]))
+    sys.exit(1)
+except FileNotFoundError:
+    print("File {} not found".format(filepath))
+    sys.exit(1)
+
+print("loading your emails")
+mbox_obj = mailbox.mbox(abs_path)
 print("loaded your emails")
 print("number of records: {}".format("???"))
 
