@@ -107,7 +107,7 @@ print("number of records: {}".format("???"))
 for idx, email_obj in enumerate(mbox_obj):
     email_data = GmailMboxMessage(email_obj)
     result = email_data.parse_email()
-    print('Parsing images from email {0} of ???'.format(idx))
+    print('Parsing images from email {0}'.format(idx))
 with open("all_urls", "w+") as f:
     f.write(json.dumps(image_urls, indent=4))
 
