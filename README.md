@@ -1,6 +1,8 @@
 # EmailGraffiti
 Vandalize old emails by taking over images that point to unclaimed resources, kind of like an NFT that's easy to prove ownership of.
 
+![emailgraffiti](https://user-images.githubusercontent.com/3084554/203109995-e1cec5bb-82b3-46c0-99c7-d37b78cd7557.gif)
+
 Checkout this full blog post to understand what's happening: [https://trufflesecurity.com/blog/email-graffiti](https://trufflesecurity.com/blog/email-graffiti)
 
 ## How to get started
