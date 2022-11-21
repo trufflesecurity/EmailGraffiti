@@ -10,15 +10,10 @@ Start by downloading the email you want to check in mbox format. In Gmail you ca
 
 Place your export in your current working directory.
 
-### Build the docker container:
-```bash
-docker build -t emailgraffiti .
-```
-
 ### Run the docker container to find email images you can Graffiti over
 
 ```
-docker run --rm -it -v $PWD/:/mailbox emailgraffiti
+docker run --rm -it -v $PWD/:/pwd trufflesecurity/email-graffiti pwd/mail.mbox
 ```
 
 You should start seeing some images you can take over in your email :)
