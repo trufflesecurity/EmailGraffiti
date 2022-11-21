@@ -192,7 +192,7 @@ def doSomethingWithRes(res, image):
     body = res
     for service in services:
         if services[service]["error"] in body:
-            print("~~~~~\nFound an image you can takeover! \nFrom: {}\nSubject {}\nDate: {}Image URL: {}\nService: {}~~~~~".format(image["from"], image["subject"], image["date"], image["url"], service))
+            print("~~~~~\nFound an image you can takeover! \nFrom: {}\nSubject {}\nDate: {}Image URL: {}\nService: {}\n~~~~~".format(image["from"], image["subject"], image["date"], image["url"], service))
 
 
 #!/usr/local/bin/python3.5
