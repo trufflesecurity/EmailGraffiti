@@ -16,8 +16,9 @@ import asyncio
 from aiohttp import ClientSession
 
 image_urls = []
+url_set = set()
 
-def get_html_text(html):
+def get_html_text(html, from_address, subject, date):
     html = "\n".join(html.splitlines())
     html = html.replace("=\n", "")
     html = html.replace("=\n", "")
@@ -35,7 +36,9 @@ def get_html_text(html):
                         image_url = image_url[3:]
                     if image_url.endswith("\""):
                         image_url = image_url[:-1]
-                    image_urls.append(image_url)
+                    if image_url not in url_set:
+                        url_set.add(image_url)
+                        image_urls.append({"url": image_url, "from": str(from_address), "subject": str(subject), "date": str(date)})
             except KeyError:
                 pass
         return parsed.body.get_text(' ', strip=True)
@@ -54,7 +57,7 @@ class GmailMboxMessage():
         email_from = self.email_data['From']
         email_to = self.email_data['To']
         email_subject = self.email_data['Subject']
-        email_text = self.read_email_payload() 
+        email_text = self.read_email_payload()
         return email_text
 
     def read_email_payload(self):
@@ -82,9 +85,10 @@ class GmailMboxMessage():
         if 'text/plain' in content_type and 'base64' not in encoding:
             msg_text = msg.get_payload()
         elif 'text/html' in content_type and 'base64' not in encoding:
-            msg_text = get_html_text(msg.get_payload())
+            msg_text = get_html_text(msg.get_payload(), self.email_data['From'], self.email_data['Subject'], self.email_data['Date'])
         elif content_type == 'NA':
-            msg_text = get_html_text(msg)
+            msg_text = get_html_text(msg, self.email_data['From'], self.email_data['Subject'], self.email_data['Date'])
+
         else:
             msg_text = None
         return (content_type, encoding, msg_text)
@@ -92,7 +96,11 @@ class GmailMboxMessage():
 ######################### End of library, example of use below
 
 print("loading your emails")
-mbox_obj = mailbox.mbox('mail.mbox')
+try:
+    mbox_obj = mailbox.mbox('mail.mbox')
+except:
+    print("Error loading your emails, make sure mail.mbox is in the working directory")
+    sys.exit()
 print("loaded your emails")
 print("number of records: {}".format("???"))
 
@@ -109,11 +117,10 @@ with open("all_urls", "r") as f:
     urls = json.loads(f.read())
 
 abandonded = []
-urls = list(set(urls))
 print("{} images found, checking them now...".format(len(urls)))
 count = 0
-new_urls = []
-for url in urls:
+for image in urls:
+    url = image["url"]
     count += 1
     if url.startswith("3D\""):
         url = url[3:]
@@ -121,7 +128,7 @@ for url in urls:
         url = url[2:]
     if url.endswith("\""):
         url = url[:-1]
-    new_urls.append(url)
+    image["url"] = url
 
 services = {
     'AWS/S3': {'error': b'The specified bucket does not exist<'},
@@ -178,22 +185,22 @@ services = {
 }
 
 
-def doSomethingWithRes(res, url):
+def doSomethingWithRes(res, image):
 #    if res == "error":
 #        return None
 #    if res.status_code == 404:
     body = res
     for service in services:
         if services[service]["error"] in body:
-            print("Found an image you can takeover! {} for {}".format(service, url))
+            print("~~~~~\nFound an image you can takeover! \nFrom: {}\nSubject {}\nDate: {}Image URL: {}\nService: {}~~~~~".format(image["from"], image["subject"], image["date"], image["url"], service))
 
 
 #!/usr/local/bin/python3.5
-async def fetch(url, session):
+async def fetch(image, session):
     try:
-        async with session.get(url) as response:
+        async with session.get(image["url"]) as response:
             if response.status == 404:
-                doSomethingWithRes(await response.read(), url)
+                doSomethingWithRes(await response.read(), image)
 
     except (aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError, ValueError, aiohttp.client_exceptions.ClientResponseError, aiohttp.client_exceptions.TooManyRedirects, UnicodeDecodeError, asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.InvalidURL, aiohttp.client_exceptions.ClientConnectorError, TimeoutError):
         pass
@@ -204,9 +211,9 @@ async def run():
     # keep connection alive for all requests.
     async with ClientSession() as session:
         count = 0
-        for url in new_urls:
+        for image in urls:
             count += 1
-            task = asyncio.ensure_future(fetch(url, session))
+            task = asyncio.ensure_future(fetch(image, session))
             tasks.append(task)
 
         await asyncio.gather(*tasks)
